@@ -29,12 +29,12 @@ ddev config --project-type=drupal9 \
 ddev start
 yes | ddev composer create "drupal/recommended-project" --no-install
 ddev composer config allow-plugins true --no-interaction
-ddev composer require drush/drush --no-install
-ddev composer require --dev -W drupal/core-dev --no-install
+ddev composer require --dev -W drupal/core-dev:^9.4 --no-install
 ddev composer require --dev phpspec/prophecy-phpunit:^2 --no-install
 ddev composer require --dev 'drupal/config_inspector:^2.0' --no-install
+ddev composer require drush/drush:^11.0 --no-install
 ddev composer require 'drupal/admin_toolbar:^3.1' --no-install
-ddev composer require 'drupal/devel:^4.1' --no-install
+ddev composer require 'drupal/devel:^5.0' --no-install
 ddev composer install
 ddev drush site:install --site-name="$HOMEDIR Test Site" -y
 ddev drush cr
