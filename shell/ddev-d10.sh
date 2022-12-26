@@ -11,6 +11,10 @@ function helpText() {
   echo ""
 }
 
+function variablesSetup() {
+  ROOTDIRECTORY=$(dirname $(dirname $(readlink -fn $0)))
+}
+
 function checkTargetDirectory() {
   if [ -e "$1" ]; then
     echo "Directory $1 already exists"
@@ -47,8 +51,13 @@ function ddevBaseSetup() {
     --docroot=web \
     --create-docroot \
     --mutagen-enabled
+  cat "$ROOTDIRECTORY/files/post-start-hook-fragment.yaml" >> .ddev/config.yaml
 
   ddev start
+}
+
+function ddevDevSetup() {
+  ddev get drud/ddev-selenium-standalone-chrome
 }
 
 function composerBasicRequire() {
@@ -89,15 +98,39 @@ if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
 EOF
 }
 
+function setupDevEnvironment() {
+  echo ""
+  echo ">>> Test Environment setup"
+
+  # Testing directory
+  mkdir -p testing/ddev
+
+  # PHPUnit w/weitzman DDT
+  echo " - PHPUnit w/weitzman DDT"
+  cp vendor/weitzman/drupal-test-traits/docs/phpunit-dtt.xml testing/ddev/.
+  cp "$ROOTDIRECTORY/ddev-web/runtests.sh" .ddev/commands/web/.
+
+  # PHP Code Sniffer
+  echo " - PHP Code Sniffer (phpcs)"
+  cp "$ROOTDIRECTORY/files/phpcs.xml" testing/ddev/.
+  cp "$ROOTDIRECTORY/ddev-web/runcs.sh" .ddev/commands/web/.
+
+  # PHPStan
+  echo " - PHPStan"
+  cp "$ROOTDIRECTORY/files/phpstan.neon" testing/ddev/.
+  cp "$ROOTDIRECTORY/ddev-web/runphpstan.sh" .ddev/commands/web/.
+}
+
 function buildAndInstall() {
   echo ""
   echo ">>> Composer and Drush install"
   ddev composer install
   ddev drush site:install --site-name="$TARGETDIR Test Site" -y
   ddev drush cr
+  mkdir web/modules/custom
 }
 
-function drushBasicEnableModules() {
+function enableBasicModules() {
   echo ""
   echo ">>> Enable basic modules"
   ddev drush en admin_toolbar,admin_toolbar_tools
@@ -109,22 +142,27 @@ function main() {
     exit
   fi;
 
+  variablesSetup
+
   checkTargetDirectory "$1"
   checkConfiguration "$2"
 
   directorySetup $TARGETDIR
 
   ddevBaseSetup
+  if [ "$CONFIG" = "Dev" ]; then ddevDevSetup; fi
   composerBasicRequire
   if [ "$CONFIG" = "Dev" ]; then composerDevRequire; fi
   buildAndInstall
   localSettingsFile
-  drushBasicEnableModules
+  if [ "$CONFIG" = "Dev" ]; then setupDevEnvironment; fi
+  enableBasicModules
 
   echo ""
-  echo "Install complete!!"
-  echo "cd to $TARGETDIR to begin"
-  echo ""
+  echo "|"
+  echo "|  Install complete!!"
+  echo "|  cd to $TARGETDIR to begin"
+  echo "|"
   ddev launch
   ddev drush uli
 }
