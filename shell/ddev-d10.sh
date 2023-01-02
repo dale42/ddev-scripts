@@ -54,6 +54,8 @@ function ddevBaseSetup() {
   cat "$ROOTDIRECTORY/files/post-start-hook-fragment.yaml" >> .ddev/config.yaml
 
   ddev start
+
+  cp "$ROOTDIRECTORY/ddev-host/login.sh" .ddev/commands/host/.
 }
 
 function ddevDevSetup() {
@@ -163,8 +165,7 @@ function main() {
   echo "|  Install complete!!"
   echo "|  cd to $TARGETDIR to begin"
   echo "|"
-  ddev launch
-  ddev drush uli
+  ddev login
 }
 
 main "$@"
