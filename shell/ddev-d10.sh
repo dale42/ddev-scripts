@@ -109,7 +109,8 @@ function setupDevEnvironment() {
 
   # PHPUnit w/weitzman DDT
   echo " - PHPUnit w/weitzman DDT"
-  cp vendor/weitzman/drupal-test-traits/docs/phpunit-dtt.xml testing/ddev/.
+  cp vendor/weitzman/drupal-test-traits/docs/phpunit.xml testing/ddev/phpunit-dtt-example.xml
+  cp "$ROOTDIRECTORY/files/phpunit-dtt.xml" .ddev/commands/web/.
   cp "$ROOTDIRECTORY/ddev-web/runtests.sh" .ddev/commands/web/.
 
   # PHP Code Sniffer
